@@ -9,9 +9,10 @@ import { ScreenType } from '../common/NavigationBar';
 interface InventoryViewProps {
   onNavigate: (screen: ScreenType) => void;
   onShareSquishy?: (squishy: Squishy) => void;
+  onOpenSpa?: (squishy: Squishy) => void;
 }
 
-export const InventoryView: React.FC<InventoryViewProps> = ({ onNavigate, onShareSquishy }) => {
+export const InventoryView: React.FC<InventoryViewProps> = ({ onNavigate, onShareSquishy, onOpenSpa }) => {
   const { inventory, toggleFavoriteSquishy, renameSquishy } = useGameStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -277,6 +278,19 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onNavigate, onShar
                 Sell in Shop
               </button>
             </div>
+
+            {onOpenSpa && (
+              <button
+                onClick={() => {
+                  audioService.playClick();
+                  onOpenSpa(selectedSquishy);
+                  setSelectedSquishy(null);
+                }}
+                className="w-full py-2 bg-[#E0F2FE] border border-[#7DD3FC] hover:bg-[#BAE6FD] text-xs font-bold text-[#0284C7] rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>🛁</span> Squishy Spa & Fluff (+25% Value)
+              </button>
+            )}
 
             {onShareSquishy && (
               <button

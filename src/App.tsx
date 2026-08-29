@@ -18,6 +18,7 @@ import { TutorialModal } from './components/modals/TutorialModal';
 import { MasterCelebrationModal } from './components/ending/MasterCelebrationModal';
 import { ShareCardModal } from './components/modals/ShareCardModal';
 import { RiddleBookModal } from './components/modals/RiddleBookModal';
+import { SquishySpaModal } from './components/modals/SquishySpaModal';
 import { audioService } from './services/audioService';
 import { Squishy } from './types/game';
 
@@ -27,6 +28,7 @@ export function App() {
     dailyMissions,
     discoveredCollection,
     checkDailyLogin,
+    buffSquishyFluffy,
     bgmEnabled,
   } = useGameStore();
 
@@ -39,6 +41,7 @@ export function App() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isRiddlesOpen, setIsRiddlesOpen] = useState(false);
   const [sharingSquishy, setSharingSquishy] = useState<Squishy | undefined>(undefined);
+  const [spaSquishy, setSpaSquishy] = useState<Squishy | null>(null);
 
   // Check Daily Login on mount
   useEffect(() => {
@@ -133,13 +136,14 @@ export function App() {
                 />
               )}
               {currentScreen === 'collection' && <CollectionBook />}
-              {currentScreen === 'room' && <MyRoom />}
+              {currentScreen === 'room' && <MyRoom onOpenSpa={(sq) => setSpaSquishy(sq)} />}
               {currentScreen === 'shop' && <SquishyShop />}
               {currentScreen === 'store' && <MaterialStore />}
               {currentScreen === 'inventory' && (
                 <InventoryView
                   onNavigate={(screen) => setCurrentScreen(screen)}
                   onShareSquishy={handleShareSquishy}
+                  onOpenSpa={(sq) => setSpaSquishy(sq)}
                 />
               )}
               {currentScreen === 'missions' && <MissionsView />}
@@ -164,6 +168,13 @@ export function App() {
         <RiddleBookModal
           onClose={() => setIsRiddlesOpen(false)}
           onGoToLab={() => setCurrentScreen('lab')}
+        />
+      )}
+      {spaSquishy && (
+        <SquishySpaModal
+          squishy={spaSquishy}
+          onClose={() => setSpaSquishy(null)}
+          onPolished={(id) => buffSquishyFluffy(id)}
         />
       )}
     </div>

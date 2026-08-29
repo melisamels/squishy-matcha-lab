@@ -5,7 +5,11 @@ import { SquishyRenderer } from '../common/SquishyRenderer';
 import { audioService } from '../../services/audioService';
 import { Sparkles, Palette, Plus, Heart, Trash2, X } from 'lucide-react';
 
-export const MyRoom: React.FC = () => {
+interface MyRoomProps {
+  onOpenSpa?: (squishy: Squishy) => void;
+}
+
+export const MyRoom: React.FC<MyRoomProps> = ({ onOpenSpa }) => {
   const {
     roomSlots,
     roomDecorations,
@@ -293,6 +297,19 @@ export const MyRoom: React.FC = () => {
                 <Trash2 size={14} /> Remove Slot
               </button>
             </div>
+
+            {onOpenSpa && (
+              <button
+                onClick={() => {
+                  audioService.playClick();
+                  onOpenSpa(inspectSlotSquishy.squishy);
+                  setInspectSlotSquishy(null);
+                }}
+                className="w-full py-2 bg-[#E0F2FE] border border-[#7DD3FC] hover:bg-[#BAE6FD] text-xs font-bold text-[#0284C7] rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>🛁</span> Take to Squishy Spa (+25% Value Boost)
+              </button>
+            )}
 
             <button
               onClick={() => setInspectSlotSquishy(null)}

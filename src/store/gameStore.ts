@@ -103,6 +103,7 @@ interface GameState {
   fulfillOrder: (orderId: string, squishyUniqueId: string, tipBonus?: number) => boolean;
   resetCombo: () => void;
   claimRiddleReward: (riddleId: string, coins: number, gems: number) => boolean;
+  buffSquishyFluffy: (uniqueId: string) => void;
   refreshOrders: () => void;
   placeSquishyInRoom: (slotId: string, squishyUniqueId: string) => void;
   removeSquishyFromRoom: (slotId: string) => void;
@@ -572,6 +573,27 @@ export const useGameStore = create<GameState>()(
         audioService.playLevelUp();
         get().triggerSaveIndicator();
         return true;
+      },
+
+      buffSquishyFluffy: (uniqueId: string) => {
+        const state = get();
+        const updatedInventory = state.inventory.map(s => {
+          if (s.uniqueId === uniqueId) {
+            const buffedValue = Math.round(s.value * 1.25);
+            const buffedName = s.name.endsWith('✨') ? s.name : `${s.name} ✨`;
+            return { ...s, value: buffedValue, name: buffedName };
+          }
+          return s;
+        });
+
+        set({
+          inventory: updatedInventory,
+          coins: state.coins + 50,
+          factoryDailyScore: state.factoryDailyScore + 30,
+        });
+
+        audioService.playSparkle();
+        get().triggerSaveIndicator();
       },
 
       refreshOrders: () => {
