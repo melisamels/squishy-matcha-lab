@@ -1,16 +1,18 @@
 import React from 'react';
 import { useGameStore, getPlayerTitle } from '../../store/gameStore';
-import { Sparkles, Volume2, VolumeX, Settings, Flame, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Volume2, VolumeX, Settings, Flame, CheckCircle2, Share2, Smartphone } from 'lucide-react';
 import { audioService } from '../../services/audioService';
 
 interface HeaderStatsProps {
   onOpenSettings: () => void;
   onOpenDailyGift: () => void;
+  onOpenShareGame?: () => void;
 }
 
 export const HeaderStats: React.FC<HeaderStatsProps> = ({
   onOpenSettings,
   onOpenDailyGift,
+  onOpenShareGame,
 }) => {
   const {
     level,
@@ -111,6 +113,20 @@ export const HeaderStats: React.FC<HeaderStatsProps> = ({
           >
             {bgmEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
+
+          {/* Share to Phone / WhatsApp */}
+          {onOpenShareGame && (
+            <button
+              onClick={() => {
+                audioService.playClick();
+                onOpenShareGame();
+              }}
+              className="p-2 rounded-2xl bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] hover:bg-[#FFE4E6] transition-all cursor-pointer shadow-xs"
+              title="Share / Mainkan di HP Anak 📱"
+            >
+              <Smartphone size={18} />
+            </button>
+          )}
 
           {/* Settings Button */}
           <button

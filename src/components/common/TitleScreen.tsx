@@ -1,7 +1,7 @@
 import React from 'react';
 import { MomoMascot } from './MomoMascot';
 import { audioService } from '../../services/audioService';
-import { Sparkles, Play, BookOpen, Settings, Flame } from 'lucide-react';
+import { Sparkles, Play, BookOpen, Settings, Flame, Smartphone } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
 interface TitleScreenProps {
@@ -9,6 +9,7 @@ interface TitleScreenProps {
   onContinueGame: () => void;
   onOpenCollection: () => void;
   onOpenSettings: () => void;
+  onOpenShareGame?: () => void;
 }
 
 export const TitleScreen: React.FC<TitleScreenProps> = ({
@@ -16,6 +17,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   onContinueGame,
   onOpenCollection,
   onOpenSettings,
+  onOpenShareGame,
 }) => {
   const { inventory, level, coins } = useGameStore();
 
@@ -90,6 +92,19 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           >
             <span>▶</span> Continue {hasSaveProgress && `(Lv.${level})`}
           </button>
+
+          {/* Mainkan di HP / Share */}
+          {onOpenShareGame && (
+            <button
+              onClick={() => {
+                audioService.playClick();
+                onOpenShareGame();
+              }}
+              className="w-full py-2.5 px-4 bg-[#EFF6FF] border-2 border-[#BFDBFE] text-[#1D4ED8] font-display font-bold text-xs rounded-2xl hover:bg-[#DBEAFE] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+            >
+              <Smartphone size={16} /> Mainkan di HP Anak 📱
+            </button>
+          )}
 
           {/* Collection Book */}
           <button

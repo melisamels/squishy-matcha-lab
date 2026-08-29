@@ -16,7 +16,9 @@ import { DailyGiftModal } from './components/modals/DailyGiftModal';
 import { MysteryBoxModal } from './components/modals/MysteryBoxModal';
 import { TutorialModal } from './components/modals/TutorialModal';
 import { MasterCelebrationModal } from './components/ending/MasterCelebrationModal';
+import { ShareCardModal } from './components/modals/ShareCardModal';
 import { audioService } from './services/audioService';
+import { Squishy } from './types/game';
 
 export function App() {
   const {
@@ -33,6 +35,8 @@ export function App() {
   const [isMysteryBoxOpen, setIsMysteryBoxOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [sharingSquishy, setSharingSquishy] = useState<Squishy | undefined>(undefined);
 
   // Check Daily Login on mount
   useEffect(() => {
@@ -71,10 +75,20 @@ export function App() {
     setCurrentScreen('lab');
   };
 
+  const handleOpenShareGame = () => {
+    setSharingSquishy(undefined);
+    setIsShareModalOpen(true);
+  };
+
+  const handleShareSquishy = (sq: Squishy) => {
+    setSharingSquishy(sq);
+    setIsShareModalOpen(true);
+  };
+
   const unclaimedMissionsCount = dailyMissions.filter(m => m.isCompleted && !m.isClaimed).length;
 
   return (
-    <div className="min-h-screen bg-[#FDF8F2] flex flex-col font-['Quicksand',sans-serif] text-[#4A3E3D]" onClick={ensureAudio}>
+    <div className="min-h-screen bg-[#FDF8F2] flex flex-col font-['Quicksand',sans-serif] text-[#4A3E3D]" onClick={ensureAudio} onTouchStart={ensureAudio}>
       {/* Title Screen or In-Game Layout */}
       {currentScreen === 'title' ? (
         <TitleScreen
@@ -82,6 +96,7 @@ export function App() {
           onContinueGame={handleContinueGame}
           onOpenCollection={() => setCurrentScreen('collection')}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenShareGame={handleOpenShareGame}
         />
       ) : (
         <div className="flex flex-col min-h-screen">
@@ -89,6 +104,7 @@ export function App() {
           <HeaderStats
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenDailyGift={() => setIsDailyGiftOpen(true)}
+            onOpenShareGame={handleOpenShareGame}
           />
 
           {/* Main Content Area with Navigation */}
@@ -108,14 +124,20 @@ export function App() {
                 />
               )}
               {currentScreen === 'lab' && (
-                <SquishyLab onNavigate={(screen) => setCurrentScreen(screen)} />
+                <SquishyLab
+                  onNavigate={(screen) => setCurrentScreen(screen)}
+                  onShareSquishy={handleShareSquishy}
+                />
               )}
               {currentScreen === 'collection' && <CollectionBook />}
               {currentScreen === 'room' && <MyRoom />}
               {currentScreen === 'shop' && <SquishyShop />}
               {currentScreen === 'store' && <MaterialStore />}
               {currentScreen === 'inventory' && (
-                <InventoryView onNavigate={(screen) => setCurrentScreen(screen)} />
+                <InventoryView
+                  onNavigate={(screen) => setCurrentScreen(screen)}
+                  onShareSquishy={handleShareSquishy}
+                />
               )}
               {currentScreen === 'missions' && <MissionsView />}
             </main>
@@ -129,6 +151,12 @@ export function App() {
       {isMysteryBoxOpen && <MysteryBoxModal onClose={() => setIsMysteryBoxOpen(false)} />}
       {isTutorialOpen && <TutorialModal onStartTutorialInLab={handleStartTutorialInLab} />}
       {isCelebrationOpen && <MasterCelebrationModal onClose={() => setIsCelebrationOpen(false)} />}
+      {isShareModalOpen && (
+        <ShareCardModal
+          squishy={sharingSquishy}
+          onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

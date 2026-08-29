@@ -8,9 +8,10 @@ import { ScreenType } from '../common/NavigationBar';
 
 interface InventoryViewProps {
   onNavigate: (screen: ScreenType) => void;
+  onShareSquishy?: (squishy: Squishy) => void;
 }
 
-export const InventoryView: React.FC<InventoryViewProps> = ({ onNavigate }) => {
+export const InventoryView: React.FC<InventoryViewProps> = ({ onNavigate, onShareSquishy }) => {
   const { inventory, toggleFavoriteSquishy, renameSquishy } = useGameStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -276,6 +277,19 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onNavigate }) => {
                 Sell in Shop
               </button>
             </div>
+
+            {onShareSquishy && (
+              <button
+                onClick={() => {
+                  audioService.playClick();
+                  onShareSquishy(selectedSquishy);
+                  setSelectedSquishy(null);
+                }}
+                className="w-full py-2 bg-[#EAF3DE] border border-[#A8C686] hover:bg-[#D6E8C2] text-xs font-bold text-[#3F6212] rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>💌</span> Share Squishy Card
+              </button>
+            )}
 
             <button
               onClick={() => setSelectedSquishy(null)}

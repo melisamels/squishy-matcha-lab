@@ -16,6 +16,7 @@ import { Squishy } from '../../types/game';
 
 interface SquishyLabProps {
   onNavigate: (screen: ScreenType) => void;
+  onShareSquishy?: (squishy: Squishy) => void;
 }
 
 const STEPS = [
@@ -28,7 +29,7 @@ const STEPS = [
   { id: 7, label: 'Create', emoji: '✨' },
 ];
 
-export const SquishyLab: React.FC<SquishyLabProps> = ({ onNavigate }) => {
+export const SquishyLab: React.FC<SquishyLabProps> = ({ onNavigate, onShareSquishy }) => {
   const {
     level,
     coins,
@@ -641,6 +642,9 @@ export const SquishyLab: React.FC<SquishyLabProps> = ({ onNavigate }) => {
           onSellImmediately={(uniqueId) => {
             sellSquishy(uniqueId);
             setCreatedResult(null);
+          }}
+          onShareCard={() => {
+            if (onShareSquishy) onShareSquishy(createdResult);
           }}
         />
       )}

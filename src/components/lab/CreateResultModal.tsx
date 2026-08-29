@@ -17,6 +17,7 @@ interface CreateResultModalProps {
   onClose: () => void;
   onGoToRoom: () => void;
   onSellImmediately: (uniqueId: string) => void;
+  onShareCard?: () => void;
 }
 
 export const CreateResultModal: React.FC<CreateResultModalProps> = ({
@@ -24,6 +25,7 @@ export const CreateResultModal: React.FC<CreateResultModalProps> = ({
   onClose,
   onGoToRoom,
   onSellImmediately,
+  onShareCard,
 }) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(squishy.name);
@@ -198,34 +200,48 @@ export const CreateResultModal: React.FC<CreateResultModalProps> = ({
         </div>
 
         {/* Actions Buttons */}
-        <div className="w-full grid grid-cols-3 gap-2">
-          <button
-            onClick={() => {
-              audioService.playClick();
-              onClose();
-            }}
-            className="py-2.5 px-2 bg-gradient-to-r from-[#8DAF66] to-[#7BA05B] text-white font-display font-bold rounded-2xl text-xs md:text-sm shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-          >
-            Keep in Bag
-          </button>
-          <button
-            onClick={() => {
-              audioService.playClick();
-              onGoToRoom();
-            }}
-            className="py-2.5 px-2 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] font-display font-bold rounded-2xl text-xs md:text-sm hover:bg-[#FFE4E6] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-          >
-            Display Room
-          </button>
-          <button
-            onClick={() => {
-              audioService.playCoin();
-              onSellImmediately(squishy.uniqueId);
-            }}
-            className="py-2.5 px-2 bg-[#FEF3C7] border border-[#FDE68A] text-[#B45309] font-display font-bold rounded-2xl text-xs md:text-sm hover:bg-[#FDE68A] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-          >
-            Sell Now
-          </button>
+        <div className="w-full flex flex-col gap-2">
+          <div className="w-full grid grid-cols-3 gap-2">
+            <button
+              onClick={() => {
+                audioService.playClick();
+                onClose();
+              }}
+              className="py-2.5 px-2 bg-gradient-to-r from-[#8DAF66] to-[#7BA05B] text-white font-display font-bold rounded-2xl text-xs md:text-sm shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              Keep in Bag
+            </button>
+            <button
+              onClick={() => {
+                audioService.playClick();
+                onGoToRoom();
+              }}
+              className="py-2.5 px-2 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] font-display font-bold rounded-2xl text-xs md:text-sm hover:bg-[#FFE4E6] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              Display Room
+            </button>
+            <button
+              onClick={() => {
+                audioService.playCoin();
+                onSellImmediately(squishy.uniqueId);
+              }}
+              className="py-2.5 px-2 bg-[#FEF3C7] border border-[#FDE68A] text-[#B45309] font-display font-bold rounded-2xl text-xs md:text-sm hover:bg-[#FDE68A] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              Sell Now
+            </button>
+          </div>
+
+          {onShareCard && (
+            <button
+              onClick={() => {
+                audioService.playClick();
+                onShareCard();
+              }}
+              className="w-full py-2.5 bg-white border-2 border-[#A8C686] hover:bg-[#EAF3DE] text-[#4D7C0F] font-display font-bold rounded-2xl text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>💌</span> Share Squishy Card to Phone
+            </button>
+          )}
         </div>
       </div>
     </div>
