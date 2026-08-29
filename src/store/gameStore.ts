@@ -34,6 +34,8 @@ interface CreationParams {
   packagingId: string;
   customName?: string;
   isMagicMachine?: boolean;
+  qualityMultiplier?: number;
+  isPerfectSquish?: boolean;
 }
 
 interface GameState {
@@ -82,6 +84,12 @@ interface GameState {
   dailyRewards: DailyGiftDay[];
   lastClaimedDailyGiftDate: string | null;
 
+  // Challenge & Skill Systems
+  perfectSquishesCount: number;
+  comboStreak: number;
+  factoryDailyScore: number;
+  solvedRiddles: string[];
+
   // Settings
   bgmEnabled: boolean;
   sfxEnabled: boolean;
@@ -92,7 +100,9 @@ interface GameState {
   // Actions
   createSquishy: (params: CreationParams) => Squishy | null;
   sellSquishy: (uniqueId: string) => number;
-  fulfillOrder: (orderId: string, squishyUniqueId: string) => boolean;
+  fulfillOrder: (orderId: string, squishyUniqueId: string, tipBonus?: number) => boolean;
+  resetCombo: () => void;
+  claimRiddleReward: (riddleId: string, coins: number, gems: number) => boolean;
   refreshOrders: () => void;
   placeSquishyInRoom: (slotId: string, squishyUniqueId: string) => void;
   removeSquishyFromRoom: (slotId: string) => void;
@@ -223,6 +233,12 @@ export const useGameStore = create<GameState>()(
       dailyRewards: DAILY_REWARDS_DATA,
       lastClaimedDailyGiftDate: null,
 
+      // Challenge & Skill Systems
+      perfectSquishesCount: 0,
+      comboStreak: 0,
+      factoryDailyScore: 0,
+      solvedRiddles: [],
+
       // Settings
       bgmEnabled: true,
       sfxEnabled: true,
@@ -255,6 +271,7 @@ export const useGameStore = create<GameState>()(
           scentId: params.scentId,
           packagingId: params.packagingId,
           isMagicMachine: params.isMagicMachine,
+          isPerfectSquish: params.isPerfectSquish,
         });
 
         // First Tutorial Guaranteed Result
@@ -280,7 +297,8 @@ export const useGameStore = create<GameState>()(
           params.shapeId,
           rarity,
           params.packagingId,
-          params.accessoryIds.length
+          params.accessoryIds.length,
+          params.qualityMultiplier || 1.0
         );
 
         // Generate Cute Name
@@ -406,6 +424,8 @@ export const useGameStore = create<GameState>()(
           };
         });
 
+        const addedScore = params.isPerfectSquish ? 60 : (params.qualityMultiplier && params.qualityMultiplier > 1 ? 35 : 15);
+
         set({
           coins: newCoins,
           level: newLevel,
@@ -416,6 +436,8 @@ export const useGameStore = create<GameState>()(
           dailyMissions: updatedDailyMissions,
           longtermMissions: updatedLongterm,
           achievements: updatedAchievements,
+          perfectSquishesCount: params.isPerfectSquish ? state.perfectSquishesCount + 1 : state.perfectSquishesCount,
+          factoryDailyScore: state.factoryDailyScore + addedScore,
         });
 
         get().triggerSaveIndicator();
@@ -464,7 +486,7 @@ export const useGameStore = create<GameState>()(
         return earned;
       },
 
-      fulfillOrder: (orderId, squishyUniqueId) => {
+      fulfillOrder: (orderId, squishyUniqueId, tipBonus = 0) => {
         const state = get();
         const order = state.activeOrders.find(o => o.id === orderId);
         const squishy = state.inventory.find(s => s.uniqueId === squishyUniqueId);
@@ -476,9 +498,14 @@ export const useGameStore = create<GameState>()(
         if (req.colorId && squishy.colorId !== req.colorId) return false;
         if (req.scentId && squishy.scentId !== req.scentId) return false;
 
-        // Fulfill reward
-        const earnedCoins = squishy.value + order.rewardCoins;
-        const earnedXp = order.rewardXp;
+        // Combo multiplier
+        const currentCombo = state.comboStreak;
+        const comboMultiplier = currentCombo >= 3 ? 2.0 : currentCombo >= 2 ? 1.5 : currentCombo >= 1 ? 1.25 : 1.0;
+
+        // Fulfill reward with tip and combo
+        const baseEarned = squishy.value + order.rewardCoins + tipBonus;
+        const earnedCoins = Math.round(baseEarned * comboMultiplier);
+        const earnedXp = Math.round(order.rewardXp * comboMultiplier);
 
         let newXp = state.xp + earnedXp;
         let newLevel = state.level;
@@ -518,9 +545,31 @@ export const useGameStore = create<GameState>()(
           inventory: remainingInventory,
           roomSlots: newSlots,
           longtermMissions: updatedLongterm,
+          comboStreak: currentCombo + 1,
+          factoryDailyScore: state.factoryDailyScore + 40,
         });
 
         audioService.playCoin();
+        get().triggerSaveIndicator();
+        return true;
+      },
+
+      resetCombo: () => {
+        set({ comboStreak: 0 });
+      },
+
+      claimRiddleReward: (riddleId: string, rewardCoins: number, rewardGems: number) => {
+        const state = get();
+        if (state.solvedRiddles.includes(riddleId)) return false;
+
+        set({
+          coins: state.coins + rewardCoins,
+          gems: state.gems + rewardGems,
+          solvedRiddles: [...state.solvedRiddles, riddleId],
+          factoryDailyScore: state.factoryDailyScore + 75,
+        });
+
+        audioService.playLevelUp();
         get().triggerSaveIndicator();
         return true;
       },

@@ -12,6 +12,7 @@ interface RarityInput {
   scentId: string;
   packagingId: string;
   isMagicMachine?: boolean;
+  isPerfectSquish?: boolean;
 }
 
 export function determineRarityAndSecret(input: RarityInput): {
@@ -66,6 +67,14 @@ export function determineRarityAndSecret(input: RarityInput): {
     pRare *= 1.5;
   }
 
+  // Skill Challenge: Perfect Squish bonus
+  if (input.isPerfectSquish) {
+    pSecret *= 2.0;
+    pLegendary *= 2.0;
+    pEpic *= 1.7;
+    pRare *= 1.4;
+  }
+
   const roll = Math.random();
   let cumulative = 0;
 
@@ -91,7 +100,8 @@ export function calculateSquishyValueAndXp(
   shapeId: string,
   rarity: Rarity,
   packagingId: string,
-  accessoriesCount: number
+  accessoriesCount: number,
+  qualityMultiplier: number = 1.0
 ): { value: number; xp: number; stars: number } {
   const shape = SHAPES_DATA.find(s => s.id === shapeId);
   const packaging = PACKAGING_DATA.find(p => p.id === packagingId);
@@ -111,7 +121,7 @@ export function calculateSquishyValueAndXp(
       stars = 1;
       break;
     case 'Uncommon':
-      baseRarityPrice = 200 + Math.floor(Math.random() * 80); // 200 - 280
+      baseRarityPrice = 200 + Math.floor(Math.random() * 100); // 200 - 300
       xp = 25;
       stars = 2;
       break;
@@ -140,8 +150,9 @@ export function calculateSquishyValueAndXp(
   // Accessories boost value
   const accessoryBonus = accessoriesCount * 40;
 
-  const rawValue = (baseRarityPrice + (baseShapePrice * 0.3) + accessoryBonus) * packagingMult;
+  const rawValue = (baseRarityPrice + (baseShapePrice * 0.3) + accessoryBonus) * packagingMult * qualityMultiplier;
   const finalValue = Math.round(rawValue / 10) * 10; // round to nearest 10
+  const finalXp = Math.round(xp * qualityMultiplier);
 
-  return { value: finalValue, xp, stars };
+  return { value: finalValue, xp: finalXp, stars };
 }

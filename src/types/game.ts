@@ -168,6 +168,7 @@ export interface CustomerOrder {
   rewardCoins: number;
   rewardXp: number;
   expiresAt: number; // timestamp
+  totalPatienceSeconds?: number;
 }
 
 export interface Mission {

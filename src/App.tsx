@@ -17,6 +17,7 @@ import { MysteryBoxModal } from './components/modals/MysteryBoxModal';
 import { TutorialModal } from './components/modals/TutorialModal';
 import { MasterCelebrationModal } from './components/ending/MasterCelebrationModal';
 import { ShareCardModal } from './components/modals/ShareCardModal';
+import { RiddleBookModal } from './components/modals/RiddleBookModal';
 import { audioService } from './services/audioService';
 import { Squishy } from './types/game';
 
@@ -36,6 +37,7 @@ export function App() {
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isRiddlesOpen, setIsRiddlesOpen] = useState(false);
   const [sharingSquishy, setSharingSquishy] = useState<Squishy | undefined>(undefined);
 
   // Check Daily Login on mount
@@ -105,6 +107,7 @@ export function App() {
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenDailyGift={() => setIsDailyGiftOpen(true)}
             onOpenShareGame={handleOpenShareGame}
+            onOpenRiddles={() => setIsRiddlesOpen(true)}
           />
 
           {/* Main Content Area with Navigation */}
@@ -155,6 +158,12 @@ export function App() {
         <ShareCardModal
           squishy={sharingSquishy}
           onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
+      {isRiddlesOpen && (
+        <RiddleBookModal
+          onClose={() => setIsRiddlesOpen(false)}
+          onGoToLab={() => setCurrentScreen('lab')}
         />
       )}
     </div>

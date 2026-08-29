@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { Squishy, CustomerOrder } from '../../types/game';
 import { SquishyRenderer } from '../common/SquishyRenderer';
 import { audioService } from '../../services/audioService';
-import { ShoppingBag, Sparkles, Clock, CheckCircle2, X } from 'lucide-react';
+import { ShoppingBag, Sparkles, Clock, CheckCircle2, X, Flame, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const SquishyShop: React.FC = () => {
@@ -11,13 +11,62 @@ export const SquishyShop: React.FC = () => {
     inventory,
     activeOrders,
     coins,
+    comboStreak,
     sellSquishy,
     fulfillOrder,
     refreshOrders,
+    resetCombo,
   } = useGameStore();
 
   const [sellConfirmSquishy, setSellConfirmSquishy] = useState<Squishy | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrder | null>(null);
+  const [orderPatience, setOrderPatience] = useState<Record<string, number>>({});
+
+  // Countdown timer for active customer patience
+  useEffect(() => {
+    setOrderPatience(prev => {
+      const next = { ...prev };
+      activeOrders.forEach(o => {
+        if (next[o.id] === undefined) {
+          next[o.id] = 85; // 85s patience
+        }
+      });
+      return next;
+    });
+
+    const interval = setInterval(() => {
+      setOrderPatience(prev => {
+        const next = { ...prev };
+        let hasExpired = false;
+        activeOrders.forEach(o => {
+          if (next[o.id] !== undefined) {
+            next[o.id] = Math.max(0, next[o.id] - 1);
+            if (next[o.id] === 0) {
+              hasExpired = true;
+            }
+          }
+        });
+        if (hasExpired) {
+          resetCombo();
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeOrders, resetCombo]);
+
+  const getPatienceInfo = (orderId: string) => {
+    const seconds = orderPatience[orderId] ?? 85;
+    const percent = Math.min(100, Math.round((seconds / 85) * 100));
+    if (seconds > 45) {
+      return { mood: '😊 Happy', tip: 80, color: 'bg-emerald-500', text: 'text-emerald-700', seconds, percent };
+    } else if (seconds > 20) {
+      return { mood: '😐 Patient', tip: 40, color: 'bg-amber-500', text: 'text-amber-700', seconds, percent };
+    } else {
+      return { mood: '😟 Impatient', tip: 0, color: 'bg-rose-500', text: 'text-rose-700', seconds, percent };
+    }
+  };
 
   const handleConfirmSell = () => {
     if (!sellConfirmSquishy) return;
@@ -26,10 +75,11 @@ export const SquishyShop: React.FC = () => {
   };
 
   const handleFulfillOrderWithSquishy = (order: CustomerOrder, squishy: Squishy) => {
-    const success = fulfillOrder(order.id, squishy.uniqueId);
+    const info = getPatienceInfo(order.id);
+    const success = fulfillOrder(order.id, squishy.uniqueId, info.tip);
     if (success) {
       try {
-        confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } });
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
       } catch (e) {}
       setSelectedOrder(null);
     }
@@ -75,13 +125,26 @@ export const SquishyShop: React.FC = () => {
 
       {/* Customer Orders Section */}
       <div className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-bold text-[#4A3E3D] flex items-center gap-2">
-          <span>💌</span> Active Customer Orders (Up to 3)
-        </h2>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <h2 className="font-display text-lg font-bold text-[#4A3E3D] flex items-center gap-2">
+            <span>💌</span> Customer Rush Orders (Up to 3)
+          </h2>
+
+          {/* Combo Multiplier Streak Banner */}
+          {comboStreak > 0 && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#F59E0B] to-[#EF4444] text-white text-xs font-black rounded-full shadow-xs animate-pulse">
+              <Flame size={14} className="fill-white" />
+              COMBO STREAK x{comboStreak}! (
+              {comboStreak >= 3 ? '2.0x' : comboStreak >= 2 ? '1.5x' : '1.25x'} Coins Bonus)
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {activeOrders.map((order, idx) => {
             const matches = getMatchingSquishiesForOrder(order);
+            const patience = getPatienceInfo(order.id);
+
             return (
               <div
                 key={order.id}
@@ -99,8 +162,22 @@ export const SquishyShop: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 text-[11px] text-[#8C7A6B] bg-[#F9F5EE] px-2 py-0.5 rounded-full">
-                    <Clock size={12} /> 25m
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-[#8C7A6B] bg-[#F9F5EE] px-2 py-0.5 rounded-full">
+                    <Clock size={12} /> {patience.seconds}s
+                  </div>
+                </div>
+
+                {/* Customer Patience Bar */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between text-[10px] font-bold">
+                    <span className={patience.text}>{patience.mood}</span>
+                    <span className="text-[#B45309]">🪙 +{patience.tip} Tip</span>
+                  </div>
+                  <div className="w-full bg-[#F3EFE9] h-2 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${patience.color} transition-all duration-1000`}
+                      style={{ width: `${patience.percent}%` }}
+                    />
                   </div>
                 </div>
 

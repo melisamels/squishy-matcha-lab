@@ -7,12 +7,14 @@ interface HeaderStatsProps {
   onOpenSettings: () => void;
   onOpenDailyGift: () => void;
   onOpenShareGame?: () => void;
+  onOpenRiddles?: () => void;
 }
 
 export const HeaderStats: React.FC<HeaderStatsProps> = ({
   onOpenSettings,
   onOpenDailyGift,
   onOpenShareGame,
+  onOpenRiddles,
 }) => {
   const {
     level,
@@ -21,6 +23,7 @@ export const HeaderStats: React.FC<HeaderStatsProps> = ({
     coins,
     gems,
     dailyStreak,
+    factoryDailyScore,
     saveIndicator,
     bgmEnabled,
     updateSettings,
@@ -89,6 +92,7 @@ export const HeaderStats: React.FC<HeaderStatsProps> = ({
           </div>
 
           {/* Streak */}
+          {/* Streak */}
           <button
             onClick={onOpenDailyGift}
             className="flex items-center gap-1 bg-[#FFF1F2] border border-[#FECDD3] px-2.5 py-1.5 rounded-2xl shadow-xs hover:bg-[#FFE4E6] transition-colors cursor-pointer"
@@ -97,10 +101,34 @@ export const HeaderStats: React.FC<HeaderStatsProps> = ({
             <Flame size={16} className="text-[#F43F5E] fill-[#F43F5E] animate-bounce" />
             <span className="font-display font-bold text-xs text-[#BE123C]">{dailyStreak}d</span>
           </button>
+
+          {/* Factory Daily Star Rank */}
+          <div
+            className="flex items-center gap-1 bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-1.5 rounded-2xl shadow-xs text-xs font-black text-[#92400E]"
+            title={`Factory Daily Challenge Score: ${factoryDailyScore} pts`}
+          >
+            <span>{factoryDailyScore >= 250 ? '👑 S+' : factoryDailyScore >= 150 ? '⭐ S' : factoryDailyScore >= 80 ? '🎖️ A' : '🥈 B'}</span>
+            <span className="hidden sm:inline">Rank</span>
+          </div>
         </div>
 
         {/* Right: Quick Action Controls */}
         <div className="flex items-center gap-2">
+          {/* Secret Riddles Book Button */}
+          {onOpenRiddles && (
+            <button
+              onClick={() => {
+                audioService.playClick();
+                onOpenRiddles();
+              }}
+              className="px-3 py-1.5 rounded-2xl bg-[#FAF5FF] border border-[#DDD6FE] text-[#7C3AED] hover:bg-[#F3E8FF] transition-all cursor-pointer shadow-xs flex items-center gap-1 text-xs font-bold"
+              title="Momo's Secret Recipe Riddles Book"
+            >
+              <span>🕵️‍♀️</span>
+              <span className="hidden md:inline">Riddles</span>
+            </button>
+          )}
+
           {/* BGM Toggle */}
           <button
             onClick={toggleSound}

@@ -9,6 +9,7 @@ import { PACKAGING_DATA } from '../../data/packaging';
 import { SquishyRenderer } from '../common/SquishyRenderer';
 import { MachineAnimation } from './MachineAnimation';
 import { CreateResultModal } from './CreateResultModal';
+import { SquishTimingGame } from './SquishTimingGame';
 import { ScreenType } from '../common/NavigationBar';
 import { audioService } from '../../services/audioService';
 import { Sparkles, Lock, ArrowLeft, ArrowRight, Wand2 } from 'lucide-react';
@@ -53,6 +54,12 @@ export const SquishyLab: React.FC<SquishyLabProps> = ({ onNavigate, onShareSquis
   const [customSquishyName, setCustomSquishyName] = useState<string>('');
   const [isMagicMachine, setIsMagicMachine] = useState<boolean>(false);
 
+  const [isTimingGameOpen, setIsTimingGameOpen] = useState<boolean>(false);
+  const [timingResult, setTimingResult] = useState<{ multiplier: number; grade: 'perfect' | 'great' | 'nice' }>({
+    multiplier: 1.0,
+    grade: 'nice',
+  });
+
   const [isCrafting, setIsCrafting] = useState<boolean>(false);
   const [createdResult, setCreatedResult] = useState<Squishy | null>(null);
   const [showCoinWarning, setShowCoinWarning] = useState<boolean>(false);
@@ -82,6 +89,13 @@ export const SquishyLab: React.FC<SquishyLabProps> = ({ onNavigate, onShareSquis
       return;
     }
     audioService.playClick();
+    // Launch interactive Timing Meter challenge!
+    setIsTimingGameOpen(true);
+  };
+
+  const handleTimingFinished = (res: { multiplier: number; grade: 'perfect' | 'great' | 'nice' }) => {
+    setTimingResult(res);
+    setIsTimingGameOpen(false);
     setIsCrafting(true);
   };
 
@@ -96,6 +110,8 @@ export const SquishyLab: React.FC<SquishyLabProps> = ({ onNavigate, onShareSquis
       packagingId: selectedPackaging,
       customName: customSquishyName,
       isMagicMachine,
+      qualityMultiplier: timingResult.multiplier,
+      isPerfectSquish: timingResult.grade === 'perfect',
     });
     if (newSquishy) {
       setCreatedResult(newSquishy);
@@ -626,6 +642,9 @@ export const SquishyLab: React.FC<SquishyLabProps> = ({ onNavigate, onShareSquis
           </div>
         </div>
       </div>
+
+      {/* Interactive Timing Kneading Meter Minigame */}
+      {isTimingGameOpen && <SquishTimingGame onResult={handleTimingFinished} />}
 
       {/* Machine Animation Sequence Overlay */}
       {isCrafting && <MachineAnimation onComplete={handleMachineFinished} />}
